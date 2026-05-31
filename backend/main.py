@@ -21,8 +21,7 @@ SEED_PATH = os.path.join(BASE_DIR, "data", "historical_seed_data.csv")
 async def lifespan(app: FastAPI):
     global PIPELINE, SEED_DATA
     print("[UrbanFlow AI] Loading LightGBM Pipeline...")
-    PIPELINE = None
-    print("MODEL LOADING SKIPPED") 
+    PIPELINE = joblib.load(MODEL_PATH) 
     print("[UrbanFlow AI] Loading 30-Day Seed Memory...")
     SEED_DATA = pd.read_csv(SEED_PATH, index_col=0, parse_dates=True)
     yield
