@@ -1,3 +1,4 @@
+from aiohttp import request
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -41,17 +42,26 @@ app.add_middleware(
 )
 
 class PredictRequest(BaseModel):
-    region: str
-    datetime: str 
+    region: int
+    datetime: str
     horizon: int = 12
+
+
+
 
 @app.post("/predict")
 async def predict_demand(request: PredictRequest):
     try:
+        print(
+            "REQUEST:",
+            request.region,
+            request.datetime,
+            request.horizon
+        )
         target_ts = pd.to_datetime(request.datetime)
         
         forecast_data, weather_context = await generate_recursive_forecast(
-            region=request.region,
+            region=int(request.region),
             start_datetime=target_ts,
             horizon=request.horizon,
             seed_data=SEED_DATA,
@@ -59,7 +69,7 @@ async def predict_demand(request: PredictRequest):
         )
         
         # Extract 48 hours of history for chart
-        history_df = SEED_DATA[SEED_DATA["region"] == request.region].copy()
+        history_df = SEED_DATA[SEED_DATA["region"] == int(request.region)].copy()
         history_df = history_df[history_df.index < target_ts].tail(192)
         history = [{"datetime": str(idx), "actual": float(row["total_pickups"])} 
                     for idx, row in history_df.iterrows() if pd.notna(row["total_pickups"])]

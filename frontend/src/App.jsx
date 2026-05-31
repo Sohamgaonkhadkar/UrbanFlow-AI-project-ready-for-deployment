@@ -4,14 +4,36 @@ import { Settings, Calendar, MapPin, Activity, Thermometer, Sun, Clock, CloudRai
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TARGET_REGIONS = [
-  "Midtown Center", "Midtown East", "Midtown North", "Midtown South",
-  "Times Square", "Financial District", "Battery Park", "Tribeca",
-  "SoHo", "Greenwich Village", "East Village", "Lower East Side",
-  "Chelsea", "Meatpacking District", "Flatiron", "Gramercy",
-  "Murray Hill", "Hell's Kitchen", "Garment District", "Upper West Side",
-  "Upper East Side", "Central Park", "Harlem", "Morningside Heights",
-  "Washington Heights", "JFK Airport", "LaGuardia Airport", 
-  "Downtown Brooklyn", "Williamsburg", "Long Island City"
+  { id: 0, name: "Harlem Region" },
+  { id: 1, name: "Midtown East Region" },
+  { id: 2, name: "Bushwick Region" },
+  { id: 3, name: "JFK Airport Region" },
+  { id: 4, name: "Tribeca Region" },
+  { id: 5, name: "Midtown Manhattan Region" },
+  { id: 6, name: "LaGuardia Airport Region" },
+  { id: 7, name: "Gramercy Region" },
+  { id: 8, name: "Upper East Side Region" },
+  { id: 9, name: "Downtown Brooklyn Region" },
+  { id: 10, name: "Lower East Side Region" },
+  { id: 11, name: "Upper West Side Region" },
+  { id: 12, name: "Penn Station / Chelsea Region" },
+  { id: 13, name: "Astoria Region" },
+  { id: 14, name: "Bryant Park Region" },
+  { id: 15, name: "Times Square Region" },
+  { id: 16, name: "Williamsburg Region" },
+  { id: 17, name: "Washington Heights Region" },
+  { id: 18, name: "Grand Central Region" },
+  { id: 19, name: "Lincoln Center Region" },
+  { id: 20, name: "Financial District Region" },
+  { id: 21, name: "Upper East Side South Region" },
+  { id: 22, name: "Greenwich Village Region" },
+  { id: 23, name: "Upper West Side North Region" },
+  { id: 24, name: "Park Slope Region" },
+  { id: 25, name: "Hell's Kitchen Region" },
+  { id: 26, name: "Murray Hill Region" },
+  { id: 27, name: "Chelsea Region" },
+  { id: 28, name: "Crown Heights Region" },
+  { id: 29, name: "Long Island City Region" }
 ];
 
 const MOCK_ALERTS = [
@@ -114,7 +136,7 @@ const CircularGauge = ({ value, label, subLabel, colorClass, strokeColor }) => {
 
 export default function App() {
   const [loading, setLoading] = useState(false);
-  const [region, setRegion] = useState("Times Square");
+  const [region, setRegion] = useState(15);
   const [horizon, setHorizon] = useState(12);
   const [timeValue, setTimeValue] = useState("");
   const [scenario, setScenario] = useState(1.0);
@@ -206,7 +228,7 @@ export default function App() {
       // ==========================================
       // VISUAL FALLBACK: Populates UI so it never goes blank
       // ==========================================
-      const baseVol = region.includes("Manhattan") || region.includes("Times Square") ? 450 : 250;
+      const baseVol =[1, 5, 14, 15, 18].includes(region) ? 450 : 250;
       const newGraphData = fallbackDataSimulator(baseVol, horizon, scenario, timeValue || new Date(), currentSeed);
       
       setGraphData(newGraphData);
@@ -333,8 +355,19 @@ export default function App() {
 
             <div>
               <label className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2"><MapPin size={14} className="text-cyan-400" /> Target Geo-Region</label>
-              <select value={region} onChange={(e) => setRegion(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                {TARGET_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+              <select
+                value={region}
+                onChange={(e) => setRegion(Number(e.target.value))}
+                className="w-full bg-black/40 border border-white/5 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              >
+                {TARGET_REGIONS.map((r) => (
+                  <option
+                    key={r.id}
+                    value={r.id}
+                  >
+                    {r.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -355,7 +388,7 @@ export default function App() {
                 <label className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider"><Activity size={14} className="text-emerald-400" /> Horizon</label>
                 <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">{horizon}h</span>
               </div>
-              <input type="range" min="1" max="48" value={horizon} onChange={(e) => setHorizon(e.target.value)} className="w-full accent-cyan-400 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer" />
+              <input type="range" min="1" max="48" value={horizon} onChange={(e) => setHorizon(Number(e.target.value))} className="w-full accent-cyan-400 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer" />
             </div>
 
             <button onClick={handleCompute} disabled={loading} className="w-full relative overflow-hidden rounded-xl bg-gradient-to-r from-cyan-400 to-pink-500 p-[1px] mt-2 active:scale-95 transition-transform">
