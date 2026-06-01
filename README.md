@@ -5,6 +5,20 @@ UrbanFlow AI is an end-to-end, full-stack machine learning platform designed for
 
 The platform supports live recursive time-series forecasting, dynamic feature engineering, and live weather integrations to project high-resolution taxi demand across 30 spatial clusters in New York City.
 
+## Key Features
+
+* Trained on **33+ million NYC taxi trip records**
+* Recursive multi-step demand forecasting
+* Real-time weather-aware inference
+* 30-cluster spatial demand modeling
+* FastAPI asynchronous backend
+* React-based telemetry dashboard
+* KPI monitoring
+* Dockerized cloud deployment on Oracle OCI
+* Feature importance and model transparency tools
+* End-to-end full-stack machine learning system
+
+
 ---
 
 ## 2. Live Deployment & System Status
@@ -19,10 +33,17 @@ The platform supports live recursive time-series forecasting, dynamic feature en
 ### 2.2 System Visuals
 *(Note: If the live server is down due to cloud credit limitations, please refer to the media below for system functionality.)*
 
-> **[Insert Screenshot of Dashboard Here - image_e15b3e.png]**
-> *Caption: The UrbanFlow AI primary telemetry dashboard illustrating real-time inference, spatial density, and system KPIs.*
+### Dashboard Preview
 
-> **[https://github.com/user-attachments/assets/417190e9-09c5-468f-8820-32502f995822]**
+![UrbanFlow AI Dashboard](https://github.com/user-attachments/assets/f7f5e5b8-0eb2-47e6-94df-798b93291414)
+
+*The UrbanFlow AI primary telemetry dashboard illustrating real-time inference, spatial density, and system KPIs.*
+
+### System Demonstration
+
+https://github.com/user-attachments/assets/417190e9-09c5-468f-8820-32502f995822
+
+*Live demonstration of UrbanFlow AI's recursive forecasting engine, telemetry dashboard, KPI monitoring system, and spatial demand visualization.*
 
 ---
 
@@ -46,83 +67,103 @@ The architecture is strictly decoupled, separating the heavy machine learning in
            [ LightGBM Inference Engine ]
              (Recursive Prediction Loop)
 ```
-## 4. The Intelligence Layer (Backend)
+## 4. Intelligence Layer (Backend)
 
-The backend is constructed using **FastAPI (`main.py`)** to handle high-concurrency asynchronous requests. It loads the serialized LightGBM pipeline and a 30-day historical seed matrix into memory upon startup using FastAPI's lifespan context manager.
+The backend is built with **FastAPI** and serves a production-ready LightGBM forecasting engine through asynchronous REST APIs. On startup, the application loads the serialized model and historical demand matrix into memory to minimize inference latency.
 
-### 4.1 The Recursive Forecasting Loop (`forecasting_service.py`)
+### Core Capabilities
 
-Standard models predict a single step ahead. UrbanFlow AI implements a dynamic autoregressive recursion loop to project demand across user-defined horizons (e.g., 12 steps / 3 hours).
+* Recursive multi-step demand forecasting
+* Real-time weather-aware predictions via Open-Meteo
+* Dynamic reconstruction of 76 engineered features
+* High-performance asynchronous request handling
+* Memory-optimized inference pipeline
 
-For a given horizon **H**:
+### Recursive Forecasting Strategy
 
-1. The system fetches weather context via `weather_service.py`.
-2. It engineers temporal and cyclical features for time **t**.
-3. The LightGBM model predicts demand **ŷₜ**.
-4. **Recursion:** **ŷₜ** is appended to the historical seed matrix, acting as the ground-truth lag feature for time **t + 1**.
-5. The loop advances until **t + H** is reached.
+Unlike standard single-step forecasting systems, UrbanFlow AI performs recursive forecasting. Each predicted demand value is fed back into the historical feature matrix and reused as a lag feature for the subsequent prediction step. This enables forecasting across flexible horizons while preserving temporal dependencies.
 
-### 4.2 Dynamic Feature Engineering (`feature_engineering.py`)
+### Dynamic Feature Engineering
 
-To match the dimensionality of the training data, the backend dynamically reconstructs **76 features** on the fly, including:
+The backend reconstructs the same feature space used during training, including:
 
-- **Topological Time:** Trigonometric transformations of the hour and day (`hour_sin`, `hour_cos`).
-- **Categorical Encoding:** Converting raw temperatures into discrete bins (`freezing`, `cold`, `mild`) compatible with LightGBM's native categorical handling.
-
----
-
-## 5. The Telemetry Dashboard (Frontend)
-
-The frontend is engineered using **React**, **Vite**, and **Tailwind CSS**, featuring high-performance data visualizations via **Recharts** and fluid animations via **Framer Motion**.
-
-### 5.1 Key Performance Indicator (KPI) Module
-
-The `KPISection.jsx` distills complex inference matrices into immediate, actionable operational metrics:
-
-- **T+1 Demand:** Extracts the very first predicted value (**t + 1**) from the recursive backend array and applies `Math.round()` to provide fleet dispatchers with the immediate impending vehicle requirement.
-- **Est. Temp & Condition:** Parses the asynchronous payload from the Open-Meteo integration to display the precise localized weather conditions feeding into the current model prediction.
-- **Active Region:** Displays the currently selected K-Means spatial cluster ID.
-
-### 5.2 Analytical Interface Components
-
-#### Demand Trajectory (Forecast Chart)
-
-Utilizes Recharts to map a continuous `ComposedChart`. It splices the 48-hour historical seed data with the newly generated future projection array, providing a seamless visual transition between past demand and forecasted surges.
-
-#### Spatial Heatmap (`DemandHeatmap.jsx`)
-
-A custom interactive grid mapping the **30 localized density clusters** established during the baseline EDA phase. It visually categorizes regional stress into **High**, **Medium**, and **Low** thresholds.
-
-#### Live Feature Importance (`FeatureImportance.jsx`)
-
-A transparency module that ranks the core drivers of the LightGBM model (e.g., `region_lag_1`, `rolling_mean_24`), allowing operators to understand why the model is projecting a specific demand curve.
+* Temporal cyclical features (`hour_sin`, `hour_cos`)
+* Lag-based demand indicators
+* Rolling statistical features
+* Weather-derived variables
+* LightGBM-compatible categorical encodings
 
 ---
 
-## 6. Infrastructure and Deployment Configuration
+## 5. Telemetry Dashboard (Frontend)
 
-The application is containerized and orchestrated for cloud deployment, utilizing custom environment configurations to satisfy machine learning dependencies.
+The frontend is developed using **React**, **Vite**, **Tailwind CSS**, **Recharts**, and **Framer Motion** to provide a responsive real-time operational dashboard.
 
-### 6.1 Dependency Management (`nixpacks.toml` & `Dockerfile`)
+### Dashboard Modules
 
-LightGBM requires the OpenMP API for parallel processing natively at the OS level. Standard Python slim images lack this C-library.
+* **Forecast Visualization:** Interactive demand trajectory displaying historical observations and future projections.
+* **KPI Monitoring:** Immediate operational metrics including demand forecasts, weather conditions, and active region selection.
+* **Spatial Heatmap:** Regional demand intensity visualization across 30 spatial clusters.
+* **Feature Importance:** Model transparency module highlighting key prediction drivers.
+* **Weather Integration:** Real-time meteorological context used during forecasting.
 
-The deployment pipeline explicitly resolves this by injecting OS-level dependencies via `apt.txt` and `nixpacks.toml`:
-
-```toml
-[phases.setup]
-aptPkgs = ["libgomp1"]
-```
-
-The `Dockerfile` establishes a lightweight `python:3.11-slim` environment, installs `libgomp1`, and exposes the Uvicorn server on port **8000**.
-
-### 6.2 Environment Security (`.env` & CORS)
-
-The backend enforces strict Cross-Origin Resource Sharing (CORS) policies. The `main.py` middleware is dynamically bound to the frontend's specific IP (`http://140.238.240.219`), preventing unauthorized external API calls from depleting the server's computational resources.
+The dashboard transforms machine learning outputs into actionable operational intelligence through interactive visual analytics.
 
 ---
 
-## 7. Local Development Setup
+## 6. Infrastructure & Deployment
+
+UrbanFlow AI is containerized and deployed on **Oracle Cloud Infrastructure (OCI)**.
+
+### Technology Stack
+
+| Layer                 | Technology                |
+| --------------------- | ------------------------- |
+| Frontend              | React, Vite, Tailwind CSS |
+| Backend               | FastAPI                   |
+| ML Engine             | LightGBM                  |
+| Visualization         | Recharts                  |
+| Animation             | Framer Motion             |
+| Weather Data          | Open-Meteo API            |
+| Deployment            | Docker, OCI               |
+| Dependency Management | Nixpacks                  |
+
+### Deployment Features
+
+* Dockerized application architecture
+* OCI cloud deployment
+* Nixpacks-based dependency management
+* OpenMP support for LightGBM execution
+* Secure CORS configuration
+* Environment-based configuration management
+
+
+---
+## 7. Model Performance Analytics
+
+The final production-grade **LightGBM forecasting pipeline**, tracked and versioned using **MLflow**, was evaluated on temporally separated unseen test data to simulate real-world forecasting conditions.
+
+### Performance Metrics
+
+| Metric                                        | Score      | Operational Interpretation                                                                                 |
+| --------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------- |
+| **MAE (Mean Absolute Error)**                 | **12.41**  | Average forecasting deviation remains limited to approximately 12 vehicle allocations per spatial cluster. |
+| **RMSE (Root Mean Square Error)**             | **20.04**  | Demonstrates strong robustness against demand surges and extreme variance scenarios.                       |
+| **R² Score**                                  | **0.9764** | The feature engineering pipeline explains **97.64%** of observed urban mobility demand variance.           |
+| **WAPE (Weighted Absolute Percentage Error)** | **9.41%**  | Equivalent to an overall forecasting accuracy of approximately **90.59%** across the evaluation horizon.   |
+
+## Research & Training Pipeline
+
+The complete exploratory analysis, feature engineering workflow, model experimentation process, and MLflow training pipeline are available in the companion repository:
+
+**Training Repository:**
+https://github.com/Sohamgaonkhadkar/UBER-DEMAND-PREDICTION
+
+This production deployment repository focuses on model serving, recursive forecasting, API infrastructure, and full-stack application deployment.
+
+---
+
+## 8. Local Development Setup
 
 To run this platform locally for further development:
 
@@ -150,15 +191,7 @@ npm run dev
 
 ---
 
-## Academic Context
+## Author
 
 Engineered and developed by **Soham Mahesh Gaonkhadkar**, Department of Chemical Engineering, *Indian Institute of Technology Kharagpur*.
 
-This repository serves as a comprehensive demonstration of:
-
-- Large-scale data engineering
-- API integration
-- Interactive client-side rendering
-- Production-grade machine learning deployment
-- Cloud-native infrastructure design
-- Full-stack AI system development
