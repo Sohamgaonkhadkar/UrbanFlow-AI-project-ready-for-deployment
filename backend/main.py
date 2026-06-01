@@ -31,7 +31,7 @@ app = FastAPI(title="UrbanFlow AI Engine", lifespan=lifespan)
 
 # --- DEPLOYMENT FIX: DYNAMIC CORS ---
 # This allows you to list your live website URL in your environment variables
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+ALLOWED_ORIGINS =  [ "http://localhost:5173", "http://140.238.240.219"]
 
 app.add_middleware(
     CORSMiddleware,
