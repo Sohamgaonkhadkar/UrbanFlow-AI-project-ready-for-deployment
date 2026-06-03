@@ -173,6 +173,7 @@ export default function App() {
 
     try {
       // --- REPLACE THIS BLOCK INSIDE handleCompute ---
+          // --- REPLACE THIS BLOCK INSIDE handleCompute ---
           const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://140.238.240.219:8000'}/predict`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -186,7 +187,8 @@ export default function App() {
       if (!response.ok) throw new Error("API Offline");
 
       const realData = await response.json();
-      
+      console.log("API RESPONSE:", realData);
+      console.log("FORECAST:", realData.forecast);
       const parsedHistory = (realData.history || []).map(item => ({
         time: new Date(item.datetime || item.ds || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         historical: item.actual !== undefined ? item.actual : Object.values(item)[1],
@@ -203,6 +205,82 @@ export default function App() {
           confidenceBand: [item.lower_bound || pred * 0.85, item.upper_bound || pred * 1.15]
         };
       });
+      const forecastValues =
+  parsedForecast.map(p => Number(p.forecast) || 0);
+
+console.log("PARSED FORECAST:", parsedForecast);
+
+const firstForecast =
+  forecastValues[0] || 1;
+
+const lastForecast =
+  forecastValues[forecastValues.length - 1] || 1;
+
+// Actual growth %
+const changePercent =
+  ((lastForecast - firstForecast) / firstForecast) * 100;
+
+// Real momentum value
+const rawMomentum =
+  Math.round(changePercent);
+
+// Gauge value (0-100 only)
+const gaugeMomentum =
+  Math.max(
+    0,
+    Math.min(
+      100,
+      rawMomentum
+    )
+  );
+
+// Forecast stability
+const mean =
+  forecastValues.reduce((a, b) => a + b, 0) /
+  forecastValues.length;
+
+const variance =
+  forecastValues.reduce(
+    (sum, val) =>
+      sum + Math.pow(val - mean, 2),
+    0
+  ) / forecastValues.length;
+
+const stdDev = Math.sqrt(variance);
+
+const trendStrength =
+  Math.abs(changePercent);
+
+// Dynamic confidence
+const confidence = Math.round(
+  Math.max(
+    30,
+    Math.min(
+      95,
+      90 -
+      (stdDev / mean) * 100 * 0.8 +
+      trendStrength * 0.1
+    )
+  )
+);
+
+setGauges({
+  momentum: gaugeMomentum,
+  momentumTrend:
+    rawMomentum >= 0
+      ? `Accelerating (+${rawMomentum}%)`
+      : `Decelerating (${rawMomentum}%)`,
+  confidence
+});
+
+console.log("Forecast Values:", forecastValues);
+console.log("First Forecast:", firstForecast);
+console.log("Last Forecast:", lastForecast);
+console.log("Change %:", changePercent);
+console.log("Raw Momentum:", rawMomentum);
+console.log("Gauge Momentum:", gaugeMomentum);
+console.log("Std Dev:", stdDev);
+console.log("Confidence:", confidence);
 
       setGraphData([...parsedHistory, ...parsedForecast]); 
       
@@ -219,8 +297,33 @@ export default function App() {
         mae: realData.metrics?.mae || 8.1
       });
 
-      setFeatures(realData.feature_importance || []);
-      setHeatmap(realData.spatial_lag_matrix || []);
+      setFeatures(
+        (realData.feature_importance || []).map((f, i) => ({
+          name: f.name,
+          value: Math.max(
+            5,
+            Math.round((f.score / 1200) * 100)
+          ),
+          color: [
+            'bg-cyan-400',
+            'bg-indigo-400',
+            'bg-purple-500',
+            'bg-fuchsia-500',
+            'bg-pink-500',
+            'bg-rose-500'
+          ][i % 6]
+        }))
+            );
+
+      setHeatmap(
+        (realData.heatmap || []).map(item => ({
+          name: item.name,
+          score: Math.min(
+            100,
+            Math.round(item.demand / 10)
+          )
+        }))
+      );
 
     } catch (error) {
       console.warn("⚠️ Backend not found. Loading Visual UI Simulator.");
@@ -442,11 +545,7 @@ export default function App() {
             </div>
             
             <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center z-10">
-               <div className="flex gap-4 text-[10px] font-mono bg-black/30 px-3 py-1.5 rounded-lg border border-white/5">
-                 <span className="text-slate-400">MAPE: <span className="text-emerald-400 font-bold">{kpis.mape}%</span></span>
-                 <span className="text-slate-400 border-l border-white/10 pl-4">RMSE: <span className="text-cyan-400 font-bold">{kpis.rmse}</span></span>
-                 <span className="text-slate-400 border-l border-white/10 pl-4">MAE: <span className="text-pink-400 font-bold">{kpis.mae}</span></span>
-               </div>
+               <div></div>
                <div className="text-[10px] text-slate-500 font-mono hidden md:block">
                  Resolution: <span className="text-slate-300">15-Min</span> | Imputation: <span className="text-emerald-500">expanding(min_1)</span>
                </div>

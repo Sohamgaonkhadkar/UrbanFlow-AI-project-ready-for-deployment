@@ -8,7 +8,7 @@ def build_features(
     weather_df: pd.DataFrame,
     feature_columns: list
 ) -> pd.DataFrame:
-
+    print("====== NEW FEATURE ENGINEERING SCRIPT IS RUNNING ======") #
     df = df_context.copy()
 
     # =====================================================

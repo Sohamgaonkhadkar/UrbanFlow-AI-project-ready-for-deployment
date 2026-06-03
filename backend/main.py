@@ -74,10 +74,67 @@ async def predict_demand(request: PredictRequest):
         history = [{"datetime": str(idx), "actual": float(row["total_pickups"])} 
                     for idx, row in history_df.iterrows() if pd.notna(row["total_pickups"])]
         
+                # ==========================
+        # HEATMAP DATA
+        # ==========================
+        heatmap = []
+
+        for region_id in range(30):
+
+            region_history = SEED_DATA[
+                SEED_DATA["region"] == region_id
+            ]
+
+            demand = (
+                float(region_history["total_pickups"].tail(24).mean())
+                if not region_history.empty
+                else 0
+            )
+
+            level = "Low"
+
+            if demand > 750:
+                level = "High"
+            elif demand > 400:
+                level = "Medium"
+
+            heatmap.append({
+                "id": region_id,
+                "name": f"NYC Sector {region_id:02d}",
+                "demand": round(demand),
+                "level": level
+            })
+
+        # ==========================
+        # TEMP FEATURE IMPORTANCE
+        # ==========================
+        feature_importance = [
+            {"name": "lag_1", "score": 1200},
+            {"name": "rolling_mean_24", "score": 950},
+            {"name": "hour_sin", "score": 800},
+            {"name": "region", "score": 700},
+            {"name": "temperature_2m", "score": 500}
+        ]
+
+        # ==========================
+        # TEMP ALERTS
+        # ==========================
+        alerts = [
+            {
+                "id": "SYS-001",
+                "severity": "INFO",
+                "message": "Forecast generated successfully",
+                "time": str(pd.Timestamp.now())
+            }
+        ]
+        
         return {
             "forecast": forecast_data,
             "history": history,
-            "weather": weather_context
+            "weather": weather_context,
+            "heatmap": heatmap,
+            "feature_importance": feature_importance,
+            "alerts": alerts
         }
     except Exception as e:
         import traceback
