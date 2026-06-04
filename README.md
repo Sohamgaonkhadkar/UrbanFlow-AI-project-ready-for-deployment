@@ -1,21 +1,26 @@
 # UrbanFlow AI: Full-Stack Spatiotemporal Forecasting Engine
 
 ## 1. Executive Summary
-UrbanFlow AI is an end-to-end, full-stack machine learning platform designed for real-time urban mobility forecasting. Building upon a highly optimized LightGBM inference engine trained on 33 million NYC transit records, the system deploys a scalable **FastAPI** backend and a reactive **React/Vite** telemetry dashboard. 
 
-The platform supports live recursive time-series forecasting, dynamic feature engineering, and live weather integrations to project high-resolution taxi demand across 30 spatial clusters in New York City.
+UrbanFlow AI is an end-to-end, full-stack spatiotemporal forecasting platform designed for real-time urban mobility demand prediction. Powered by a production-grade LightGBM forecasting engine trained on over **33 million NYC taxi trip records**, the platform combines advanced machine learning, dynamic feature engineering, live weather integration, and scalable cloud deployment to deliver high-resolution demand forecasts across New York City.
+
+The system features a production-ready **FastAPI** backend, a responsive **React/Vite** telemetry dashboard, and a recursive forecasting pipeline capable of generating multi-step demand predictions while preserving temporal dependencies.
+
+> Built and deployed a full-stack spatiotemporal forecasting platform serving real-time taxi demand predictions across **30 NYC spatial clusters**, trained on **33M+ trip records** and achieving **90.59% forecasting accuracy (WAPE-based)** on unseen test data.
 
 ## Key Features
 
 * Trained on **33+ million NYC taxi trip records**
 * Recursive multi-step demand forecasting
-* Real-time weather-aware inference
+* Real-time weather-aware inference using Open-Meteo
 * 30-cluster spatial demand modeling
-* FastAPI asynchronous backend
-* React-based telemetry dashboard
-* KPI monitoring
-* Dockerized cloud deployment on Oracle OCI
-* Feature importance and model transparency tools
+* Dynamic feature engineering with lag and rolling statistics
+* Production-ready FastAPI backend
+* Interactive React-based telemetry dashboard
+* Spatial demand heatmap visualization
+* KPI monitoring and operational analytics
+* Feature importance and model explainability tools
+* Dockerized cloud deployment on Oracle Cloud Infrastructure (OCI)
 * End-to-end full-stack machine learning system
 
 
@@ -31,7 +36,7 @@ The platform supports live recursive time-series forecasting, dynamic feature en
 * **API Forecasting Limit:** The system utilizes the Open-Meteo API for real-time meteorological feature engineering. Consequently, the live web application will only generate valid predictions for the **current date and up to 14 days into the future**. Selecting dates beyond this horizon will result in weather data fetch failures.
 
 ### 2.2 System Visuals
-*(Note: If the live server is down due to cloud credit limitations, please refer to the media below for system functionality.)*
+*(Note:The public demo may occasionally be unavailable due to infrastructure maintenance., please refer to the media below for system functionality.)*
 
 ### Dashboard Preview
 
@@ -190,6 +195,39 @@ npm run dev
 ```
 
 ---
+## Project Structure
+
+UrbanFlow-AI/
+│
+├── backend/
+│   ├── main.py                    # FastAPI entrypoint
+│   ├── forecasting_service.py     # Recursive forecasting engine
+│   ├── feature_engineering.py     # Feature generation pipeline
+│   ├── weather_service.py         # Open-Meteo integration
+│   ├── data/
+│   └── services/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── ForecastChart.jsx
+│   │   │   ├── DemandHeatmap.jsx
+│   │   │   ├── KPISection.jsx
+│   │   │   └── FeatureImportance.jsx
+│   │   │
+│   │   ├── services/
+│   │   │   └── api.js
+│   │   │
+│   │   ├── styles/
+│   │   └── App.jsx
+│   │
+│   └── index.html
+│
+├── Dockerfile
+├── requirements.txt
+├── nixpacks.toml
+└── README.md
 
 ## Author
 
