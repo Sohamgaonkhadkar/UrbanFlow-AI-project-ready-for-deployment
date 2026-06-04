@@ -35,13 +35,13 @@ The platform supports live recursive time-series forecasting, dynamic feature en
 
 ### Dashboard Preview
 
-![UrbanFlow AI Dashboard](https://github.com/user-attachments/assets/f7f5e5b8-0eb2-47e6-94df-798b93291414)
+![UrbanFlow AI Dashboard](https://github.com/user-attachments/assets/67534e54-2d07-40ba-8c0a-9bb611bf05f5)
 
 *The UrbanFlow AI primary telemetry dashboard illustrating real-time inference, spatial density, and system KPIs.*
 
 ### System Demonstration
 
-https://github.com/user-attachments/assets/417190e9-09c5-468f-8820-32502f995822
+https://github.com/user-attachments/assets/6c0cd1eb-78aa-4e55-aa77-2dc26a57d7ca
 
 *Live demonstration of UrbanFlow AI's recursive forecasting engine, telemetry dashboard, KPI monitoring system, and spatial demand visualization.*
 
